@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Nodejs-tk102 by fvdm</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Nodejs-tk102</h1>
+        <p>Server for Xexun TK102 GPS</p>
+        <p class="view"><a href="https://github.com/fvdm/nodejs-tk102">View the Project on GitHub <small>fvdm/nodejs-tk102</small></a></p>
+        <ul>
+          <li><a href="https://github.com/fvdm/nodejs-tk102/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/fvdm/nodejs-tk102/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/fvdm/nodejs-tk102">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>TK102 GPS server for Node.js</h2>
+
+<p><a href="http://travis-ci.org/fvdm/nodejs-tk102"><img src="https://secure.travis-ci.org/fvdm/nodejs-tk102.png?branch=master" alt="Build Status"></a></p>
+
+<p>The Xexun TK102 is a GPS device that can send coordinates over TCP to a server via GPRS. This Node.js script creates a TCP server that listens for GPRMC data, parsing it and dump it to the console. The parsed data is provided in a clean easy to use object, so you can easily store it in a database or push to a websocket server, for example.</p>
+
+<h2>Prepare device</h2>
+
+<p>Assuming your simcard has enough SMS and data credits and the TK102 is configured for your provider's APN, simply send <strong>adminip123456 IP PORT</strong> where obviously IP is the server's IP and PORT is the port to listen on :) It cannot take hostnames as it has no dns features on board.</p>
+
+<p>Activate sending coordinates: <strong>t030s003n123456</strong></p>
+
+<p>This tells the device to send its location AFTER each <strong>30</strong> seconds and no more than <strong>3</strong> times. 30 seconds is the minimum. Send t030s***n123456 to go on for infinity. <strong>s</strong> can also be <strong>m</strong> or <strong>h</strong>. To kill send notn123456.</p>
+
+<h2>Installation</h2>
+
+<p>Either load the module with NPM:</p>
+
+<p><strong>npm install tk102</strong></p>
+
+<div class="highlight">
+<pre><span class="kd">var</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'tk102'</span><span class="p">);</span>
+</pre>
+</div>
+
+
+<p>or load directly:</p>
+
+<div class="highlight">
+<pre><span class="kd">var</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'/path/to/tk102.js'</span><span class="p">);</span>
+</pre>
+</div>
+
+
+<h2>Usage</h2>
+
+<div class="highlight">
+<pre><span class="kd">var</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'tk102'</span><span class="p">);</span>
+
+<span class="c1">// start server</span>
+<span class="nx">server</span><span class="p">.</span><span class="nx">createServer</span><span class="p">({</span>
+        <span class="nx">port</span><span class="o">:</span> <span class="mi">1337</span>
+<span class="p">});</span>
+
+<span class="c1">// incoming data</span>
+<span class="nx">server</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span> <span class="s1">'track'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">gps</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span> <span class="nx">gps</span> <span class="p">);</span>
+<span class="p">});</span>
+</pre>
+</div>
+
+
+<h2>Settings</h2>
+
+<div class="highlight">
+<pre><span class="nx">server</span><span class="p">.</span><span class="nx">createServer</span><span class="p">({</span>
+        <span class="nx">ip</span><span class="o">:</span>          <span class="s1">'1.2.3.4'</span><span class="p">,</span>  <span class="c1">// default 0.0.0.0 (all ips)</span>
+        <span class="nx">port</span><span class="o">:</span>        <span class="mi">0</span><span class="p">,</span>          <span class="c1">// default 0 = random, see 'listening' event</span>
+        <span class="nx">connections</span><span class="o">:</span> <span class="mi">10</span><span class="p">,</span>         <span class="c1">// simultaneous connections</span>
+        <span class="nx">timeout</span><span class="o">:</span>     <span class="mi">10</span>          <span class="c1">// idle timeout in seconds</span>
+<span class="p">});</span>
+</pre>
+</div>
+
+
+<h2>Events</h2>
+
+<h3>track</h3>
+
+<p>The GPRMC push from the device.</p>
+
+<div class="highlight">
+<pre><span class="nx">server</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span> <span class="s1">'track'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">gps</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="p">{</span> <span class="nx">raw</span><span class="o">:</span> <span class="s1">'1203301642,0031698765432,GPRMC,144219.000,A,5213.0327,N,00516.7759,E,0.63,179.59,300312,,,A*6D,F,imei:123456789012345,123'</span><span class="p">,</span>
+          <span class="nx">datetime</span><span class="o">:</span> <span class="s1">'2012-03-30 16:42'</span><span class="p">,</span>
+          <span class="nx">phone</span><span class="o">:</span> <span class="s1">'0031698765432'</span><span class="p">,</span>
+          <span class="nx">gps</span><span class="o">:</span> <span class="p">{</span> <span class="nx">date</span><span class="o">:</span> <span class="s1">'2012-03-30'</span><span class="p">,</span> <span class="nx">time</span><span class="o">:</span> <span class="s1">'14:42:19.000'</span><span class="p">,</span> <span class="nx">signal</span><span class="o">:</span> <span class="s1">'full'</span><span class="p">,</span> <span class="nx">fix</span><span class="o">:</span> <span class="s1">'active'</span> <span class="p">},</span>
+          <span class="nx">geo</span><span class="o">:</span> <span class="p">{</span> <span class="nx">latitude</span><span class="o">:</span> <span class="mf">52.130326</span><span class="p">,</span> <span class="nx">longitude</span><span class="o">:</span> <span class="mf">5.167759</span><span class="p">,</span> <span class="nx">bearing</span><span class="o">:</span> <span class="mi">179</span> <span class="p">},</span>
+          <span class="nx">speed</span><span class="o">:</span> <span class="p">{</span> <span class="nx">knots</span><span class="o">:</span> <span class="mf">0.63</span><span class="p">,</span> <span class="nx">kmh</span><span class="o">:</span> <span class="mf">1.167</span><span class="p">,</span> <span class="nx">mph</span><span class="o">:</span> <span class="mf">0.725</span> <span class="p">},</span>
+          <span class="nx">imei</span><span class="o">:</span> <span class="s1">'123456789012345'</span> <span class="p">};</span>
+<span class="p">});</span>
+</pre>
+</div>
+
+
+<ul>
+<li>
+<strong>raw:</strong> the input string without trailing whitespace</li>
+<li>
+<strong>datetime:</strong> the device 24h clock</li>
+<li>
+<strong>phone:</strong> the admin phonenumber that initiated this tracking</li>
+<li>
+<strong>gps:</strong>
+
+<ul>
+<li>
+<strong>date:</strong> date as received from satellites</li>
+<li>
+<strong>time:</strong> time in 24h UTC as received from satellites</li>
+<li>
+<strong>signal:</strong> GPS signal strength, either <em>full</em> or <em>low</em>
+</li>
+<li>
+<strong>fix:</strong> GPS fix, either <em>active</em> or <em>invalid</em>
+</li>
+</ul>
+</li>
+<li>
+<strong>geo:</strong>
+
+<ul>
+<li>
+<strong>latitude:</strong> position latitude</li>
+<li>
+<strong>longitude:</strong> position longitude</li>
+<li>
+<strong>bearing:</strong> direction in degrees</li>
+</ul>
+</li>
+<li>
+<strong>speed:</strong>
+
+<ul>
+<li>
+<strong>knots:</strong> speed in knots per hour</li>
+<li>
+<strong>kmh:</strong> speed in kilometer per hour</li>
+<li>
+<strong>mph:</strong> speed in miles per hour</li>
+</ul>
+</li>
+<li>
+<strong>imei:</strong> device IMEI</li>
+</ul><h3>data</h3>
+
+<p>The raw unprocessed inbound data.</p>
+
+<div class="highlight">
+<pre><span class="nx">server</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span> <span class="s1">'data'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">raw</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span> <span class="s1">'Incoming data: '</span><span class="o">+</span> <span class="nx">raw</span> <span class="p">);</span>
+<span class="p">});</span>
+</pre>
+</div>
+
+
+<h3>listening</h3>
+
+<p>Very useful to find out random port (0).</p>
+
+<div class="highlight">
+<pre><span class="nx">server</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span> <span class="s1">'listening'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">listen</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="p">{</span> <span class="nx">port</span><span class="o">:</span> <span class="mi">56751</span><span class="p">,</span> <span class="nx">family</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">address</span><span class="o">:</span> <span class="s1">'0.0.0.0'</span> <span class="p">}</span>
+<span class="p">});</span>
+</pre>
+</div>
+
+
+<h3>connection</h3>
+
+<p>Emitted when a connection is established with the server, includes the socket.</p>
+
+<div class="highlight">
+<pre><span class="nx">server</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span> <span class="s1">'connection'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">socket</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span> <span class="s1">'Connection from '</span><span class="o">+</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">remoteAddress</span> <span class="p">);</span>
+<span class="p">});</span>
+</pre>
+</div>
+
+
+<h3>timeout</h3>
+
+<p>Emitted when a connection expires.</p>
+
+<div class="highlight">
+<pre><span class="nx">server</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span> <span class="s1">'timeout'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">socket</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span> <span class="s1">'Time-out from '</span><span class="o">+</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">remoteAddress</span> <span class="p">);</span>
+<span class="p">});</span>
+</pre>
+</div>
+
+
+<h2>Note</h2>
+
+<p>I'm not sure how this works with TK102-2 and other similar devices, I wrote this strictly for the TK102 as I only have one of those. There is no security built in, anyone could push GPRMC data to your server.</p>
+
+<h2>License</h2>
+
+<p>This code is released under COPYLEFT meaning you can do with it
+anything you like except copyrighting it. If possible it would
+be nice to include the source URL for future reference:</p>
+
+<p><a href="https://github.com/fvdm/nodejs-tk102">https://github.com/fvdm/nodejs-tk102</a></p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/fvdm">fvdm</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-3580504-53");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
